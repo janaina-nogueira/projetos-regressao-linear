@@ -1,166 +1,219 @@
 # Organização da Análise
 
-Este notebook apresenta o desenvolvimento de um modelo de regressão linear para estimar a quantidade de matéria verde por hectare (`Kg MV/ha`) utilizando o conjunto de dados **MontadoDB**.
+Este notebook apresenta o desenvolvimento de uma análise de regressão linear para estimar a quantidade de matéria verde por hectare (`Kg MV/ha`) utilizando o conjunto de dados **MontadoDB**.
 
-A análise foi organizada nas seguintes etapas:
-
-## 1. Carregamento e análise inicial dos dados
-
-Inicialmente, o conjunto de dados é carregado e inspecionado para compreender sua estrutura, número de observações, variáveis disponíveis e características da variável-alvo `Kg MV/ha`.
-
-Nesta etapa são realizadas:
-
-* importação das bibliotecas;
-* carregamento do MontadoDB;
-* inspeção das dimensões e variáveis;
-* análise descritiva da variável-alvo;
-* visualização da distribuição de `Kg MV/ha`.
+O desenvolvimento foi dividido em **duas etapas principais**. A primeira corresponde às **análises iniciais e testes exploratórios**, utilizados como etapa de treino para compreender o conjunto de dados, experimentar procedimentos de regressão linear e identificar possíveis problemas metodológicos. A segunda corresponde à **implementação oficial**, construída a partir do conhecimento adquirido durante essa etapa inicial e de características específicas do domínio do MontadoDB.
 
 ---
 
-## 2. Preparação dos dados espectrais
+## 1. Análises iniciais — etapa de treino e exploração
 
-Considerando as características do MontadoDB, são utilizadas informações espectrais provenientes de diferentes sensores.
+A primeira parte do notebook foi utilizada como uma etapa de **treino e exploração dos dados**.
 
-As bandas espectrais são convertidas para suas respectivas escalas de reflectância antes do cálculo dos índices de vegetação.
+O objetivo dessa etapa não foi estabelecer o modelo final, mas compreender o funcionamento do conjunto de dados e praticar as principais etapas envolvidas na construção de um modelo de regressão linear.
 
-São considerados principalmente dados provenientes de:
+Foram realizadas:
 
-* Sentinel-2 (S2);
-* Landsat 8 (L8);
-* MODIS.
+* importação das bibliotecas e carregamento do MontadoDB;
+* inspeção da estrutura do conjunto de dados;
+* análise das variáveis disponíveis;
+* análise descritiva da variável-alvo `Kg MV/ha`;
+* identificação de valores ausentes;
+* investigação de possíveis relações entre as variáveis;
+* identificação de possíveis situações de vazamento de dados (*data leakage*);
+* divisão dos dados entre treinamento e teste;
+* seleção preliminar de variáveis;
+* treinamento de um modelo de regressão linear;
+* cálculo de MAE, RMSE e R²;
+* análise dos valores observados e previstos;
+* análise dos resíduos;
+* inspeção dos coeficientes da regressão.
 
-Devido às diferenças de resolução espacial e disponibilidade entre os sensores, é realizada uma preparação específica para permitir sua utilização na análise.
+Essa etapa permitiu compreender melhor o processo de modelagem e identificar limitações de uma abordagem baseada apenas na seleção automática das variáveis com maior correlação.
 
----
-
-## 3. Construção dos índices de vegetação
-
-A partir das bandas espectrais são calculados índices relacionados às características da vegetação.
-
-### NDVI — Normalized Difference Vegetation Index
-
-O NDVI é calculado a partir das bandas do vermelho e infravermelho próximo e é utilizado como indicador das características da vegetação.
-
-São calculadas versões do NDVI para os sensores disponíveis.
-
-### NDMI — Normalized Difference Moisture Index
-
-Também é investigado o NDMI, construído a partir das bandas do infravermelho próximo e infravermelho de ondas curtas, permitindo incorporar informações relacionadas à umidade da vegetação.
+**Os modelos e resultados dessa seção são exploratórios e não correspondem à implementação oficial utilizada na análise final.**
 
 ---
 
-## 4. Tratamento da qualidade das observações
+## 2. Conhecimento de domínio
 
-Como as medições espectrais podem ser afetadas por condições atmosféricas, são identificadas observações potencialmente comprometidas pela presença de nuvens.
+Após a exploração inicial, foram consideradas características específicas do **MontadoDB** e do problema de estimativa de parâmetros de pastagens.
 
-A análise prioriza as observações consideradas adequadas após esse tratamento.
+O conjunto contém informações provenientes de imagens multiespectrais de diferentes sensores e satélites. Dessa forma, a implementação oficial passa a considerar variáveis construídas a partir dessas informações, em vez de selecionar os preditores apenas por sua correlação estatística com a variável-alvo.
 
----
+Essa etapa inclui:
 
-## 5. Análise da variável-alvo
-
-A distribuição de `Kg MV/ha` é analisada antes do ajuste dos modelos.
-
-Também é investigada a transformação logarítmica:
-
-`logMV = log(Kg MV/ha)`
-
-A transformação é avaliada com o objetivo de verificar se proporciona uma distribuição mais adequada da variável utilizada na regressão.
+* análise das bandas espectrais disponíveis;
+* normalização dos dados de reflectância;
+* consideração das diferenças entre os sensores;
+* cálculo de índices relacionados às características da vegetação;
+* seleção do melhor dado espectral disponível para cada coleta.
 
 ---
 
-## 6. Modelos de regressão linear
+## 3. Preparação dos dados espectrais
 
-A construção do modelo é realizada de forma incremental, permitindo avaliar a contribuição de diferentes componentes.
+As bandas espectrais são convertidas para suas respectivas escalas de reflectância antes de serem utilizadas na construção dos índices.
 
-### 6.1 Índice espectral
+São considerados principalmente dados provenientes de diferentes sensores, levando em conta suas características e resoluções espaciais.
 
-Inicialmente, é investigada a relação entre a quantidade de matéria verde e os índices espectrais, incluindo NDVI e NDMI.
+Como nem todas as coletas apresentam informações igualmente adequadas em todos os sensores, é realizada uma seleção do melhor dado disponível para cada observação.
 
-### 6.2 Efeito do pasto
+---
 
-A variável `Sample` é utilizada para identificar o pasto (`Paddock`) associado a cada observação.
+# 4. Implementação oficial
 
-Esse componente é posteriormente incorporado aos modelos como variável categórica.
+A partir desta etapa é apresentada a **implementação oficial da análise**.
 
-### 6.3 Componente temporal
+Diferentemente dos testes iniciais, essa abordagem utiliza o conhecimento adquirido durante a exploração dos dados juntamente com informações específicas do domínio para definir as variáveis e especificações investigadas.
 
-A data e o dia do ano (`DOY`) são utilizados para representar a sazonalidade das observações.
+---
 
-É construída a variável `season_day`, permitindo investigar possíveis variações temporais na quantidade de matéria verde.
+## 4.1 Relação entre matéria verde e NDVI
 
-### 6.4 Modelo completo
+Inicialmente, é analisada a relação entre `Kg MV/ha` e o **NDVI (Normalized Difference Vegetation Index)**.
 
-A especificação mais completa combina:
+O NDVI é calculado a partir das bandas espectrais do vermelho e do infravermelho próximo e é utilizado como indicador das características da vegetação.
 
-* índice espectral;
+A análise permite verificar a existência e o comportamento da relação entre o índice espectral e a quantidade de matéria verde observada.
+
+---
+
+## 4.2 Análise da distribuição de `Kg MV/ha`
+
+A distribuição da variável-alvo é analisada para verificar suas características e possíveis assimetrias.
+
+A partir dessa análise, é investigada a transformação:
+
+`log(Kg MV/ha)`
+
+O objetivo é avaliar se a transformação logarítmica proporciona uma relação mais adequada para a aplicação da regressão linear.
+
+---
+
+## 4.3 Relação entre `log(Kg MV/ha)` e NDVI
+
+Após a transformação da variável-alvo, a relação entre o NDVI e `log(Kg MV/ha)` é novamente investigada.
+
+Essa etapa permite comparar o comportamento da relação antes e depois da transformação e avaliar sua adequação à modelagem linear.
+
+---
+
+## 4.4 Análise do NDMI
+
+Além do NDVI, é investigado o **NDMI (Normalized Difference Moisture Index)**.
+
+Esse índice utiliza informações do infravermelho próximo e do infravermelho de ondas curtas e fornece informações relacionadas à umidade da vegetação.
+
+Sua relação com a variável-alvo é analisada como uma possível fonte adicional de informação para o modelo.
+
+---
+
+## 4.5 Inclusão do efeito de pasto
+
+O conjunto de dados contém observações provenientes de diferentes pastos.
+
+A variável `Sample` é utilizada para identificar o **Paddock** associado a cada observação, permitindo investigar se diferenças entre os locais de coleta contribuem para explicar a variação de `Kg MV/ha`.
+
+Esse componente é incorporado ao modelo como variável categórica.
+
+---
+
+## 4.6 Componente temporal e sazonalidade
+
+Também são consideradas informações temporais presentes no conjunto de dados.
+
+A partir da data e do dia do ano (`DOY`), são construídas variáveis destinadas a representar possíveis padrões sazonais na quantidade de matéria verde.
+
+Dessa forma, a modelagem passa a considerar não apenas as características espectrais da vegetação, mas também possíveis diferenças relacionadas ao período do ano em que cada observação foi realizada.
+
+---
+
+## 4.7 Construção dos modelos
+
+Os modelos são construídos progressivamente, permitindo observar como a inclusão de diferentes componentes modifica o ajuste da regressão.
+
+São consideradas informações relacionadas a:
+
+* índices espectrais;
 * pasto (`Paddock`);
-* componente sazonal;
-* termo quadrático do componente temporal;
-* interação entre o índice espectral e o período do ano.
+* componente temporal;
+* sazonalidade;
+* possíveis termos de interação e relações não estritamente lineares entre os preditores.
 
-Dessa forma, a análise avalia se a estimativa de matéria verde pode ser explicada não apenas pelas informações espectrais, mas também pelas diferenças entre pastos e pela sazonalidade.
+Essa estratégia permite comparar especificações mais simples com modelos que incorporam maior quantidade de informação sobre o contexto das observações.
 
 ---
 
-## 7. Verificação dos modelos
+## 5. Diagnóstico dos modelos
 
-Os modelos são acompanhados pela análise de seus resíduos e dos pressupostos associados à regressão linear.
+Após o ajuste, os modelos são avaliados por meio da análise de seus resíduos e dos pressupostos associados à regressão linear.
 
-São utilizadas análises gráficas e testes estatísticos para investigar aspectos como:
+São consideradas análises relacionadas a:
 
 * distribuição dos resíduos;
-* relação entre resíduos e valores ajustados;
+* resíduos em função dos valores ajustados;
 * normalidade;
 * heterocedasticidade;
 * autocorrelação.
 
----
-
-## 8. Comparação dos modelos
-
-Por fim, diferentes especificações de regressão são comparadas para verificar como a inclusão dos componentes de pasto e sazonalidade modifica o ajuste dos modelos.
-
-A comparação permite analisar a evolução desde modelos mais simples, baseados apenas em uma variável espectral, até especificações que incorporam informações espaciais e temporais do conjunto de dados.
+Essas verificações auxiliam na identificação de possíveis limitações das especificações avaliadas.
 
 ---
 
-## Fluxo geral
+## 6. Resultados
+
+Por fim, os resultados das diferentes especificações são comparados.
+
+A análise busca verificar como a inclusão de informações espectrais, espaciais e temporais influencia a capacidade do modelo de representar a variação observada em `Kg MV/ha`.
+
+Os resultados da **implementação oficial** são utilizados para a interpretação final do trabalho, enquanto os resultados das análises iniciais são mantidos no notebook como registro da etapa de treino, exploração e desenvolvimento da solução.
+
+---
+
+## Fluxo geral do notebook
 
 **MontadoDB**
 
 ↓
 
-**Análise descritiva**
+**Análises iniciais e exploração dos dados**
 
 ↓
 
-**Normalização das bandas espectrais**
+**Treino das etapas de regressão linear**
 
 ↓
 
-**Cálculo de NDVI e NDMI**
+**Identificação de limitações e risco de vazamento de dados**
 
 ↓
 
-**Tratamento de observações potencialmente afetadas por nuvens**
+**Estudo das características do domínio**
 
 ↓
 
-**Análise de `Kg MV/ha` e transformação logarítmica**
+**Preparação das informações espectrais**
 
 ↓
 
-**Regressão com índice espectral**
+**IMPLEMENTAÇÃO OFICIAL**
 
 ↓
 
-**Inclusão do efeito de Paddock**
+**NDVI e NDMI**
 
 ↓
 
-**Inclusão da sazonalidade**
+**Transformação de `Kg MV/ha`**
+
+↓
+
+**Paddock + sazonalidade**
+
+↓
+
+**Construção dos modelos**
 
 ↓
 
@@ -168,8 +221,8 @@ A comparação permite analisar a evolução desde modelos mais simples, baseado
 
 ↓
 
-**Comparação dos modelos**
+**Comparação dos resultados**
 
 ↓
 
-**Resultados finais**
+**Conclusões**
