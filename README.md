@@ -167,7 +167,7 @@ Por fim, os resultados das diferentes especificações são comparados.
 
 A análise busca verificar como a inclusão de informações espectrais, espaciais e temporais influencia a capacidade do modelo de representar a variação observada em `Kg MV/ha`.
 
-Os resultados da **implementação oficial** são utilizados para a interpretação final do trabalho, enquanto os resultados das análises iniciais são mantidos no notebook como registro da etapa de treino, exploração e desenvolvimento da solução.
+Os resultados da **implementação oficial** são utilizados para a interpretação final do trabalho.
 
 ---
 
